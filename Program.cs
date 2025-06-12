@@ -2,9 +2,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using System.Text;
+using DotNetEnv;
 using ProdutosAPi.Models;
 using ProdutosAPi.Data;
 using Microsoft.EntityFrameworkCore;
+
+Env.Load();
+
 var builder = WebApplication.CreateBuilder(args); // Adicionar serviços ao container. (Registrador de serviços)
 
 //Obtendo string de conexão
@@ -34,13 +38,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole> (options => {
 
   //Configuracao da autenticacao JWT Bearer
   //As chaves JWT (Issuer, AUdience, Key) geralmente vem do appsettings.json
-  var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-  var jwtAudience = builder.Configuration["Jwt:Audience"];
-  var jwtKey = builder.Configuration["Jwt:Key"];
-
-  if (string.IsNullOrEmpty(jwtKey)) {
-    throw new InvalidOperationException("Chave JWT não está configurada");
-  }
+  var jwtIssuer = builder.Configuration["JWT_ISSUER"];
+  var jwtAudience = builder.Configuration["JWT_AUDIENCE"];
+  var jwtKey = builder.Configuration["JWT_KEY"]!;
 
   builder.Services.AddAuthentication(options => {
   options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
