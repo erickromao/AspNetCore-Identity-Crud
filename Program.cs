@@ -79,6 +79,20 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi(); // Mapeia os endpoints para servir o arquivo JSON da especificacao
 }
 
+using (var scope = app.Services.CreateScope()) {
+  var services = scope.ServiceProvider;
+  try {
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    await SeedData.Initialize(userManager, roleManager); //Chame seu método de seed
+  }
+  catch (Exception ex) {
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Um erro ocorreu durante o seeding do banco de dados do Identity.");
+  }
+}
+
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication(); //Identifica quem é o usuario lendo o token JWT
