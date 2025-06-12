@@ -1,0 +1,4 @@
+# Pastas de saída de build do .NET
+bin/
+obj/
+
