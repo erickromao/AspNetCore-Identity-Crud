@@ -7,31 +7,33 @@ namespace ProdutosAPi.Data
   {
     public static async Task Initialize(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager) 
     {
-      string[] roleNames = { "Admin", "User", "Menager" }; //Definindo as roles(categorias de usuarios) que a aplicacao vai ter
-      IdentityResult roleResult; // Estou criando uma variavel que é feita para guardar informações do tipo IdentityResult
+      string[] roleNames = { "Admin", "User", "Menager" };
+      IdentityResult roleResult;
 
-      foreach (var roleName in roleNames) {
+      foreach (var roleName in roleNames)
+      {
         var roleExist = await roleManager.RoleExistsAsync(roleName);
-        if (!roleExist) {
-          // criando a role e a adicionando ao banco de dados, caso não seja encontrado
+        if (!roleExist)
+        {
           roleResult = await roleManager.CreateAsync(new IdentityRole(roleName));
         }
       }
       
       var adminUser = await userManager.FindByEmailAsync("admin@gmail.com");
 
-      // Criando um novo usuário Admin padrao
-      if (adminUser == null) {
-        adminUser = new ApplicationUser {
+      if (adminUser == null)
+      {
+        adminUser = new ApplicationUser
+        {
           UserName = "admin",
           Email = "admin@gmail.com",
-          EmailConfirmed = true // Confirmando o email diratamente para o admin
+          EmailConfirmed = true 
         };
 
         var createAdminUserResult = await userManager.CreateAsync(adminUser, "Senha123!");
         
-        if (createAdminUserResult.Succeeded) {
-          // Adiciona o usuário Admin a role "admin"
+        if (createAdminUserResult.Succeeded)
+        {
           await userManager.AddToRoleAsync(adminUser, "Admin");
         }
       }

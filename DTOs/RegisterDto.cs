@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ProdutosAPi.DTOs {
-
+namespace ProdutosAPi.DTOs
+{
   public class RegisterDto
   {
     public required string Username { get; set; }
