@@ -6,6 +6,7 @@ using DotNetEnv;
 using ProdutosAPi.Models;
 using ProdutosAPi.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 Env.Load();
 
@@ -61,18 +62,46 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole> (options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c => 
+{
+  c.SwaggerDoc("v1", new OpenApiInfo {Title = "Produto API", Version = "v1"});
+
+  c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+  {
+    Name = "Authorization",
+    Type = SecuritySchemeType.Http,
+    Scheme = "Bearer",
+    BearerFormat = "JWT",
+    In = ParameterLocation.Header,
+    Description = "Autenticação JWT usando o esquema Bearer. Digite 'Bearer ' token."
+  });
+
+  c.AddSecurityRequirement(new OpenApiSecurityRequirement
+  {
+    {
+      new OpenApiSecurityScheme
+      {
+        Reference = new OpenApiReference
+        {
+          Type = ReferenceType.SecurityScheme,
+          Id = "Bearer"
+        }
+      },
+      new string[] {}
+    }
+  });
+});
 
 builder.Services.AddOpenApi();
 
-//builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger(); 
     app.UseSwaggerUI();
-    app.MapOpenApi();
+//  app.MapOpenApi();
 }
 
 using (var scope = app.Services.CreateScope()) 
@@ -82,6 +111,7 @@ using (var scope = app.Services.CreateScope())
   {
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    var logger = services.GetRequiredService<ILogger<Program>>();
     await SeedData.Initialize(userManager, roleManager);
   }
   catch (Exception ex) 
