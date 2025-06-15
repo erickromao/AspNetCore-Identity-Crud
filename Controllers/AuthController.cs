@@ -48,5 +48,71 @@ public class AuthController : ControllerBase
 
     return Ok(new { Message = "Usuário registrado com sucesso!"});
   }
+
+  [HttpPost("login")]
+  public async Task<IActionResult> Login([FromBody] LoginDto model)
+  {
+    if (!ModelState.IsValid) 
+    {
+      return BadRequest(ModelState);
+    }
+
+    ApplicationUser? user = null;
+    if (model.UsernameOrEmail.Contains("@"))
+    {
+      user = await _userManager.FindByEmailAsync(model.UsernameOrEmail);
+    }
+    else
+    {
+      user = await _userManager.FindByNameAsync(model.UsernameOrEmail);
+    }
+
+    if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+    {
+      var userRoles = await _userManager.GetRolesAsync(user);
+      var authClaims = new List<Claim>
+      {
+        new Claim(ClaimTypes.Name, user.UserName!),
+        new Claim(ClaimTypes.NameIdentifier, user.Id),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+      };
+
+      foreach (var userRole in userRoles)
+      {
+        authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+      }
+
+      var jwtSecret = _configuration["JWT_KEY"];
+      var issuer = _configuration["JWT_ISSUER"];
+      var audience = _configuration["JWT_AUDIENCE"];
+
+      if (string.IsNullOrEmpty(jwtSecret))
+      {
+        return StatusCode(StatusCodes.Status500InternalServerError, new {Message = "Erro de configuração interna do servidor."});
+      }
+      
+      var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+
+      var token = new JwtSecurityToken (
+          issuer: issuer,
+          audience: audience,
+          expires: DateTime.Now.AddHours(3),
+          claims: authClaims,
+          signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+          );
+
+      return Ok( new
+      {
+        token = new JwtSecurityTokenHandler().WriteToken(token),
+        expiration = token.ValidTo,
+        username = user.UserName,
+        email = user.Email,
+        roles = userRoles
+      });
+    }
+
+    return Unauthorized(new {Message = "Login ou senha inválidos."});
+  }
 }
 
