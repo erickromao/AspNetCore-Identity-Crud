@@ -65,6 +65,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddOpenApi();
 
+//builder.Services.AddAutoMapper(typeof(Program).Assembly);
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
