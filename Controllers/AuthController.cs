@@ -46,6 +46,37 @@ public class AuthController : ControllerBase
         return StatusCode(StatusCodes.Status409Conflict, new { Message = "E-mail já cadastrado!"});
     }
 
+    ApplicationUser user = new()
+    {
+      Email = model.Email,
+      SecurityStamp = Guid.NewGuid().ToString(),
+      UserName = model.Username
+    };
+
+    var result = await _userManager.CreateAsync(user, model.Password);
+    if (!result.Succeeded)
+    {
+      return BadRequest(new { Message = "Falha ao registrar usuário.", Erros = result.Errors });
+    }
+
+    try
+    {
+      if (!await _roleManager.RoleExistsAsync("User"))
+      {
+        var roleResult = await _roleManager.CreateAsync(new IdentityRole("User"));
+        if(!roleResult.Succeeded)
+        {
+        Console.WriteLine($"Erro ao criar a role 'User': {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+        }
+      }
+      await _userManager.AddToRoleAsync(user, "User");
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Erro ao atribuir a role 'User' ao usuário: {ex.Message}");
+      return StatusCode(StatusCodes.Status500InternalServerError, new { Message  = "Usuário registrado, mas falha ao atribuir role." });
+    }
+
     return Ok(new { Message = "Usuário registrado com sucesso!"});
   }
 
