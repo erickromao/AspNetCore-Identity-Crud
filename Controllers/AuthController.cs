@@ -77,7 +77,7 @@ public class AuthController : ControllerBase
       return StatusCode(StatusCodes.Status500InternalServerError, new { Message  = "Usuário registrado, mas falha ao atribuir role." });
     }
 
-    return Ok(new { Message = "Usuário registrado com sucesso!"});
+    return Ok(new { Message = "Usuário registrado com sucesso!" });
   }
 
   [HttpPost("login")]
