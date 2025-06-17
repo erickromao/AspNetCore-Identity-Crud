@@ -106,7 +106,7 @@ public class ProdutosController : ControllerBase
       _logger.LogError(ex, "Erro de concorrência ao atualizar produto com ID: {ProdutoId}.", id);
       if (!await _context.Produtos!.AnyAsync(p => p.Id == id))
       {
-        return NotFound(new { Message = $"Produto com ID {id} foi removido poor outro usuário." });
+        return NotFound(new { Message = $"Produto com ID {id} foi removido por outro usuário." });
       }
       else
       {
@@ -132,7 +132,7 @@ public class ProdutosController : ControllerBase
     await _context.SaveChangesAsync();
     _logger.LogInformation("Produto com ID: {ProdutoId} deletado.", id);
 
-    return NoContent();
+    return Ok(new { Message = $"{produto.Nome} com ID: {produto.Id} deletado." });
   }
 }
 
